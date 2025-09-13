@@ -31,25 +31,28 @@ router.post(
 
       const { className, subjectId, lat, lng, wifiCheckEnabled } = req.body;
 
-      // If wifiCheckEnabled, store the request IP as the first allowed IP
-      const allowedIps = wifiCheckEnabled ? [req.ipInfo.ip] : [];
+      // Normalize IPs into array
+      let allowedIps = [];
+      if (wifiCheckEnabled && req.ipInfo?.ip) {
+        allowedIps = req.ipInfo.ip
+          .split(",")        // split comma-separated
+          .map(ip => ip.trim()); // remove spaces
+      }
 
-      // Create new session with sessionId and teacher reference
       const newSession = new Session({
         sessionId: uuidv4(),
         className,
-        subject: subjectId,   // subject ref
+        subject: subjectId,
         lat,
         lng,
         status: 'active',
         wifiCheckEnabled,
-        allowedIps,          //  now storing as array
+        allowedIps,
         teacher: req.user._id
       });
 
       await newSession.save();
 
-      // Generate QR code from sessionId
       QRCode.toDataURL(newSession.sessionId, (err, url) => {
         if (err) return res.status(500).json({ error: 'QR generation failed' });
 
@@ -66,6 +69,7 @@ router.post(
     }
   }
 );
+
 
 
 
