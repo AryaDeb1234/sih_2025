@@ -11,6 +11,8 @@ const attendanceRoutes = require('./routes/attendence_routes');
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const testroute=require("./routes/test");
+
 
 var app = express();
 const getClientip = require("./middleware/getclientip");
@@ -71,6 +73,8 @@ app.use('/attendance', attendanceRoutes);
 app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
+app.use('/',testroute);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
