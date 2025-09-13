@@ -3,6 +3,7 @@ const passport = require("passport"); //  use passport for JWT auth
 const User = require("../models/user");
 const QRCode = require('qrcode');
 const Session = require('../models/session');
+const Attendance = require('../models/attendence');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 
@@ -71,6 +72,50 @@ router.post(
 );
 
 
+// End session manually
+router.post('/end', async (req, res) => {
+  const { sessionId } = req.body;
+
+  const session = await Session.findOneAndUpdate(
+    { sessionId },
+    { status: 'inactive' },
+    { new: true }
+  );
+
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+
+  res.json({ message: 'Session ended successfully!', session });
+});
+
+//for delete the session
+router.delete(
+  '/delete',
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      if (req.user.role !== "teacher") {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const { sessionId } = req.body;
+
+      // Find session
+      const session = await Session.findOne({ sessionId, teacher: req.user._id });
+      if (!session) return res.status(404).json({ error: 'Session not found' });
+
+      // Delete attendances linked to this session
+      await Attendance.deleteMany({ sessionId });
+
+      // Delete session itself
+      await Session.deleteOne({ sessionId });
+
+      res.json({ message: 'Session and all related attendance deleted successfully!' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to delete session' });
+    }
+  }
+);
 
 
 
@@ -119,24 +164,6 @@ router.post(
 //     }
 //   }
 // );
-
-
-
-// End session manually
-router.post('/end', async (req, res) => {
-  const { sessionId } = req.body;
-
-  const session = await Session.findOneAndUpdate(
-    { sessionId },
-    { status: 'inactive' },
-    { new: true }
-  );
-
-  if (!session) return res.status(404).json({ error: 'Session not found' });
-
-  res.json({ message: 'Session ended successfully!', session });
-});
-
 
 // router.post('/create', async (req, res) => {
 //   const { className, subjectId } = req.body;
