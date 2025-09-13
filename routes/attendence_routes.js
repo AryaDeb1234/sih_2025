@@ -54,7 +54,7 @@ router.post('/mark', async (req, res) => {
 
     // ---- WiFi/IP Check (Optional) ----
     if (session.wifiCheckEnabled) {
-      const clientIp = req.ipInfo.ip;
+      const clientIp = req.ipInfo.ip.split(",")[0].trim(); // ✅ only first IP
       if (!session.allowedIps.includes(clientIp)) {
         return res.status(403).json({ error: 'You are not connected to the allowed WiFi network' });
       }
@@ -65,16 +65,21 @@ router.post('/mark', async (req, res) => {
       studentId,
       sessionId,
       markedAt: new Date(),
-      ip: req.ipInfo.ip
+      ip: req.ipInfo.ip.split(",")[0].trim() // ✅ store only first IP
     });
     await newAttendance.save();
 
-    res.json({ message: 'Attendance marked successfully!', gpsValid, ip: req.ipInfo.ip });
+    res.json({
+      message: 'Attendance marked successfully!',
+      gpsValid,
+      ip: req.ipInfo.ip.split(",")[0].trim()
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to mark attendance' });
   }
 });
+
 
 
 // router.post('/mark', async (req, res) => {

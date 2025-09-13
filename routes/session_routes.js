@@ -31,12 +31,11 @@ router.post(
 
       const { className, subjectId, lat, lng, wifiCheckEnabled } = req.body;
 
-      // Normalize IPs into array
+      // ✅ Store only the first client IP
       let allowedIps = [];
       if (wifiCheckEnabled && req.ipInfo?.ip) {
-        allowedIps = req.ipInfo.ip
-          .split(",")        // split comma-separated
-          .map(ip => ip.trim()); // remove spaces
+        const firstIp = req.ipInfo.ip.split(",")[0].trim(); 
+        allowedIps = [firstIp];
       }
 
       const newSession = new Session({
@@ -53,6 +52,7 @@ router.post(
 
       await newSession.save();
 
+      // Generate QR code
       QRCode.toDataURL(newSession.sessionId, (err, url) => {
         if (err) return res.status(500).json({ error: 'QR generation failed' });
 
@@ -69,6 +69,7 @@ router.post(
     }
   }
 );
+
 
 
 
