@@ -29,7 +29,14 @@ require("./config/passport")(passport);
 app.use(ip().getIpInfoMiddleware);
 
 
-
+app.use(cors({
+  origin: [
+    "http://localhost:3000",           // Dev frontend
+     //website er name add korte hobe
+  ],
+  //allowedHeaders: ["Content-Type", "Authorization"],//extraa line
+  credentials: true
+}));
 
 
 
