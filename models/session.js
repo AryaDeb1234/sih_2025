@@ -23,7 +23,7 @@ const sessionSchema = new mongoose.Schema({
   lat: { type: Number, required: true },
   lng: { type: Number, required: true },
   wifiCheckEnabled: { type: Boolean, default: false },
-  allowedIp: { type: String },
+  allowedIps: [String],
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 });
 

@@ -20,7 +20,6 @@ router.get('/:sessionId', async (req, res) => {
   }
 });
 
-
 router.post(
   '/create',
   passport.authenticate("jwt", { session: false }),
@@ -32,24 +31,25 @@ router.post(
 
       const { className, subjectId, lat, lng, wifiCheckEnabled } = req.body;
 
-      const allowedIp = wifiCheckEnabled ? req.ipInfo.ip : null;
+      // If wifiCheckEnabled, store the request IP as the first allowed IP
+      const allowedIps = wifiCheckEnabled ? [req.ipInfo.ip] : [];
 
-      //  Create new session with sessionId and teacher reference
+      // Create new session with sessionId and teacher reference
       const newSession = new Session({
         sessionId: uuidv4(),
         className,
-        subject: subjectId,     // subject ref
+        subject: subjectId,   // subject ref
         lat,
         lng,
         status: 'active',
         wifiCheckEnabled,
-        allowedIp,
-        teacher: req.user._id   // store teacher id
+        allowedIps,          //  now storing as array
+        teacher: req.user._id
       });
 
       await newSession.save();
 
-      //  Generate QR code from sessionId
+      // Generate QR code from sessionId
       QRCode.toDataURL(newSession.sessionId, (err, url) => {
         if (err) return res.status(500).json({ error: 'QR generation failed' });
 
@@ -66,6 +66,54 @@ router.post(
     }
   }
 );
+
+
+
+// router.post(
+//   '/create',
+//   passport.authenticate("jwt", { session: false }),
+//   async (req, res) => {
+//     try {
+//       if (req.user.role !== "teacher") {
+//         return res.status(403).json({ error: "Access denied" });
+//       }
+
+//       const { className, subjectId, lat, lng, wifiCheckEnabled } = req.body;
+
+//       const allowedIp = wifiCheckEnabled ? req.ipInfo.ip : null;
+
+//       //  Create new session with sessionId and teacher reference
+//       const newSession = new Session({
+//         sessionId: uuidv4(),
+//         className,
+//         subject: subjectId,     // subject ref
+//         lat,
+//         lng,
+//         status: 'active',
+//         wifiCheckEnabled,
+//         allowedIp,
+//         teacher: req.user._id   // store teacher id
+//       });
+
+//       await newSession.save();
+
+//       //  Generate QR code from sessionId
+//       QRCode.toDataURL(newSession.sessionId, (err, url) => {
+//         if (err) return res.status(500).json({ error: 'QR generation failed' });
+
+//         res.json({
+//           message: 'Session created successfully!',
+//           qrImage: url,
+//           sessionId: newSession.sessionId,
+//           session: newSession
+//         });
+//       });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: 'Failed to create session' });
+//     }
+//   }
+// );
 
 
 

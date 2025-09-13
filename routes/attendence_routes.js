@@ -55,7 +55,7 @@ router.post('/mark', async (req, res) => {
     // ---- WiFi/IP Check (Optional) ----
     if (session.wifiCheckEnabled) {
       const clientIp = req.ipInfo.ip;
-      if (clientIp !== session.allowedIp) {
+      if (!session.allowedIps.includes(clientIp)) {
         return res.status(403).json({ error: 'You are not connected to the allowed WiFi network' });
       }
     }
@@ -75,6 +75,51 @@ router.post('/mark', async (req, res) => {
     res.status(500).json({ error: 'Failed to mark attendance' });
   }
 });
+
+
+// router.post('/mark', async (req, res) => {
+//   try {
+//     const { studentId, sessionId, lat, lng } = req.body;
+
+//     const session = await Session.findOne({ sessionId, status: 'active' });
+//     if (!session) return res.status(400).json({ error: 'Invalid or inactive session' });
+
+//     const alreadyMarked = await Attendance.findOne({ studentId, sessionId });
+//     if (alreadyMarked) return res.status(400).json({ error: 'Attendance already marked' });
+
+//     // ---- GPS Check (Mandatory) ----
+//     let gpsValid = false;
+//     if (lat && lng) {
+//       const distance = calculateDistance(lat, lng, session.lat, session.lng);
+//       gpsValid = distance <= 100; // within 100 meters
+//     }
+//     if (!gpsValid) {
+//       return res.status(403).json({ error: 'You are not within the allowed class area' });
+//     }
+
+//     // ---- WiFi/IP Check (Optional) ----
+//     if (session.wifiCheckEnabled) {
+//       const clientIp = req.ipInfo.ip;
+//       if (clientIp !== session.allowedIp) {
+//         return res.status(403).json({ error: 'You are not connected to the allowed WiFi network' });
+//       }
+//     }
+
+//     // Save attendance
+//     const newAttendance = new Attendance({
+//       studentId,
+//       sessionId,
+//       markedAt: new Date(),
+//       ip: req.ipInfo.ip
+//     });
+//     await newAttendance.save();
+
+//     res.json({ message: 'Attendance marked successfully!', gpsValid, ip: req.ipInfo.ip });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: 'Failed to mark attendance' });
+//   }
+// });
 
 
 
