@@ -1,0 +1,5 @@
+/node_modules
+.env
+.DS_Store
+rsa_private.pem
+rsa_public.pem
