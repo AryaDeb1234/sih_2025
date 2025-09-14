@@ -1,5 +1,5 @@
 const express = require("express");
-const passport = require("passport"); // ✅ use passport for JWT auth
+const passport = require("passport"); //  use passport for JWT auth
 const User = require("../models/user");
 const Subject=require("../models/subject");
 const { genpassword } = require("../lib/passwordutilis");
