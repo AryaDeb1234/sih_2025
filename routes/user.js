@@ -7,26 +7,42 @@ const { genpassword } = require("../lib/passwordutilis");
 
 const router = express.Router();
 
-
+const isAuthenticated = passport.authenticate("jwt", { session: false });
 
 // GET /user/:id - Get user details by ID
-router.get("/:id",  async (req, res) => {
+// router.get("/:id",  async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+
+//     res.json({ user });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Failed to fetch user details" });
+//   }
+// });
+
+router.get("/current-user", isAuthenticated, async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.user._id; // comes from JWT payload
+    console.log(userId);
 
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    const existuser = await User.findById(userId).select("-password");
+    if (!existuser) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.json({ user });
+    res.status(200).json({ success: true, existuser });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch user details" });
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 });
-
 
 // GET /student/:id/attendance-summary
 router.get(
@@ -45,7 +61,7 @@ router.get(
       if (!sessions.length) {
         return res.json({ summary: [] });
       }
-
+ 
       // 2. Fetch student's attendance records
       const attendances = await Attendance.find({ studentId });
 
