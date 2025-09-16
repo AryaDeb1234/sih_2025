@@ -111,7 +111,7 @@ router.get(
 router.get(
   "/student/:id/attendance/:subjectName",
   passport.authenticate("jwt", { session: false }),
-  async (req, res) => {
+  async (req, res) => {x
     try {
       const { id: studentId, subjectName } = req.params;
 

@@ -21,9 +21,9 @@ router.post(
       // subjects should be array of subjectIds for teacher
       
       var check=User.find({"email":email});
-      if(check){
-        return res.status(401).json({error:"User already exist"});
-      }
+      // if(check){
+      //   return res.status(401).json({error:"User already exist"});
+      // }
 
       if (!["teacher", "student"].includes(role)) {
         return res
