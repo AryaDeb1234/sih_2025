@@ -25,10 +25,10 @@ router.post(
       //   return res.status(401).json({error:"User already exist"});
       // }
 
-      if (!["teacher", "student"].includes(role)) {
+      if (!["teacher", "student","admin"].includes(role)) {
         return res
           .status(400)
-          .json({ error: "Role must be teacher or student" });
+          .json({ error: "Role must be teacher or student or admin" });
       }
       if (!name) {
         return res.status(400).json({error:"Name is required"});

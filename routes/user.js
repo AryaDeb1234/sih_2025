@@ -148,11 +148,6 @@ router.get(
 
 
 
-
-
-
-
-
 // GET /user/:id/subjects - Get subjects for a teacher by their ID
 router.get("/teacher/:id/subjects", passport.authenticate("jwt", { session: false }), async (req, res) => {
   try {
