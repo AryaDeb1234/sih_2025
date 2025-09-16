@@ -21,8 +21,8 @@ const userSchema = new mongoose.Schema({
   department: { type: String },
 
   // For students
-  semester: { type: Number },   // e.g., 1, 2, 3...
-  year: { type: Number },       // e.g., 2025
+  semester: String,   // e.g., 1, 2, 3...
+  year: String,       // e.g., 2025
 
   // For teachers
   subjects: [subjectSchema]
