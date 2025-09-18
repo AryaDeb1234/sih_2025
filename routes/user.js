@@ -293,6 +293,50 @@ router.get("/teacher/:id/subjects", passport.authenticate("jwt", { session: fals
 
 
 // GET /teacher/:id/attendance-stats
+// router.get("/teacher/:id/attendance-stats", 
+//   passport.authenticate("jwt", { session: false }), 
+//   async (req, res) => {
+//     try {
+//       const teacherId = req.params.id;
+
+//       // 1. Find the teacher
+//       const teacher = await User.findById(teacherId).select("role");
+//       if (!teacher) return res.status(404).json({ error: "Teacher not found" });
+//       if (teacher.role !== "teacher") return res.status(400).json({ error: "User is not a teacher" });
+
+//       // 2. Find all sessions created by this teacher
+//       const sessions = await Session.find({ teacher: teacherId });
+
+//       if (!sessions.length) return res.status(404).json({ error: "No sessions found for teacher" });
+
+//       // 3. Compute attendance stats for each session
+//       const stats = [];
+//       for (const session of sessions) {
+//         const attendances = await Attendance.find({ sessionId: session.sessionId })
+//                                             .populate("studentId", "name email");
+
+//         stats.push({
+//           sessionId: session.sessionId,
+//           className: session.className,
+//           status: session.status,
+//           createdAt: session.createdAt,
+//           totalMarked: attendances.length,
+//           students: attendances.map(a => ({
+//             id: a.studentId._id,
+//             name: a.studentId.name,
+//             email: a.studentId.email
+//           }))
+//         });
+//       }
+
+//       res.json({ stats });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: "Failed to fetch attendance stats" });
+//     }
+// });
+
+// GET /teacher/:id/attendance-stats
 router.get("/teacher/:id/attendance-stats", 
   passport.authenticate("jwt", { session: false }), 
   async (req, res) => {
@@ -306,7 +350,6 @@ router.get("/teacher/:id/attendance-stats",
 
       // 2. Find all sessions created by this teacher
       const sessions = await Session.find({ teacher: teacherId });
-
       if (!sessions.length) return res.status(404).json({ error: "No sessions found for teacher" });
 
       // 3. Compute attendance stats for each session
@@ -315,17 +358,25 @@ router.get("/teacher/:id/attendance-stats",
         const attendances = await Attendance.find({ sessionId: session.sessionId })
                                             .populate("studentId", "name email");
 
+        // ✅ Deduplicate students
+        const uniqueStudents = new Map();
+        for (const a of attendances) {
+          if (a.studentId) {
+            uniqueStudents.set(a.studentId._id.toString(), {
+              id: a.studentId._id,
+              name: a.studentId.name,
+              email: a.studentId.email
+            });
+          }
+        }
+
         stats.push({
           sessionId: session.sessionId,
           className: session.className,
           status: session.status,
           createdAt: session.createdAt,
-          totalMarked: attendances.length,
-          students: attendances.map(a => ({
-            id: a.studentId._id,
-            name: a.studentId.name,
-            email: a.studentId.email
-          }))
+          totalMarked: uniqueStudents.size,   // ✅ count unique
+          students: Array.from(uniqueStudents.values()) // ✅ no duplicates
         });
       }
 
@@ -335,7 +386,6 @@ router.get("/teacher/:id/attendance-stats",
       res.status(500).json({ error: "Failed to fetch attendance stats" });
     }
 });
-
 
 
 
