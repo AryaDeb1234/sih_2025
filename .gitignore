@@ -3,3 +3,4 @@
 .DS_Store
 rsa_private.pem
 rsa_public.pem
+cleanup_sessions.js

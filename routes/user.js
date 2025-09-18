@@ -45,6 +45,127 @@ router.get("/current-user", isAuthenticated, async (req, res) => {
 });
 
 // GET /student/:id/attendance-summary
+// router.get(
+//   "/student/:id/attendance-summary",
+//   passport.authenticate("jwt", { session: false }),
+//   async (req, res) => {
+//     try {
+//       const studentId = req.params.id;
+
+//       const student = await User.findById(studentId);
+//       if (!student) return res.status(404).json({ error: "Student not found" });
+
+//       // 1. Fetch all sessions
+//       const sessions = await Session.find();
+
+//       if (!sessions.length) {
+//         return res.json({ summary: [] });
+//       }
+ 
+//       // 2. Fetch student's attendance records
+//       const attendances = await Attendance.find({ studentId });
+
+//       // 3. Group by subject
+//       const subjectStats = {};
+
+//       for (const session of sessions) {
+//         const subject = session.className;
+
+//         if (!subjectStats[subject]) {
+//           subjectStats[subject] = {
+//             subjectName: subject,
+//             totalClasses: 0,
+//             totalPresents: 0,
+//           };
+//         }
+
+//         subjectStats[subject].totalClasses += 1;
+
+//         // check if this student has a "present" attendance for this session
+//         const present = attendances.find(
+//           (a) => a.sessionId === session.sessionId && a.status === "present"
+//         );
+//         if (present) subjectStats[subject].totalPresents += 1;
+//       }
+
+//       // 4. Convert to array and add percentage
+//       const summary = Object.values(subjectStats).map((s) => ({
+//         ...s,
+//         percentage:
+//           s.totalClasses > 0
+//             ? ((s.totalPresents / s.totalClasses) * 100).toFixed(2)
+//             : "0.00",
+//       }));
+
+//       res.json({ summary });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: "Failed to fetch attendance summary" });
+//     }
+//   }
+// );
+
+// router.get(
+//   "/student/:id/attendance-summary",
+//   passport.authenticate("jwt", { session: false }),
+//   async (req, res) => {
+//     try {
+//       const studentId = req.params.id;
+
+//       const student = await User.findById(studentId);
+//       if (!student) return res.status(404).json({ error: "Student not found" });
+
+//       // 1. Fetch all sessions
+//       const sessions = await Session.find();
+
+//       if (!sessions.length) {
+//         return res.json({ summary: [] });
+//       }
+ 
+//       // 2. Fetch student's attendance records
+//       const attendances = await Attendance.find({ studentId });
+
+//       // 3. Group by subject
+//       const subjectStats = {};
+
+//       for (const session of sessions) {
+//         const subject = session.className;
+
+//         if (!subjectStats[subject]) {
+//           subjectStats[subject] = {
+//             subjectName: subject,
+//             totalClasses: 0,
+//             totalPresents: 0,
+//           };
+//         }
+
+//         subjectStats[subject].totalClasses += 1;
+
+//         // check if this student has a "present" attendance for this session
+//         const present = attendances.find(
+//           (a) => a.sessionId === session.sessionId && a.status === "present"
+//         );
+//         if (present) subjectStats[subject].totalPresents += 1;
+//       }
+
+//       // 4. Convert to array and add percentage
+//       const summary = Object.values(subjectStats).map((s) => ({
+//         ...s,
+//         percentage:
+//           s.totalClasses > 0
+//             ? ((s.totalPresents / s.totalClasses) * 100).toFixed(2)
+//             : "0.00",
+//       }));
+
+//       res.json({ summary });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: "Failed to fetch attendance summary" });
+//     }
+//   }
+// );
+
+
 router.get(
   "/student/:id/attendance-summary",
   passport.authenticate("jwt", { session: false }),
@@ -55,21 +176,21 @@ router.get(
       const student = await User.findById(studentId);
       if (!student) return res.status(404).json({ error: "Student not found" });
 
-      // 1. Fetch all sessions
-      const sessions = await Session.find();
+      // ✅ Fetch all sessions with subject populated
+      const sessions = await Session.find().populate("subject");
 
       if (!sessions.length) {
         return res.json({ summary: [] });
       }
- 
-      // 2. Fetch student's attendance records
+
       const attendances = await Attendance.find({ studentId });
 
-      // 3. Group by subject
       const subjectStats = {};
 
       for (const session of sessions) {
-        const subject = session.className;
+        // ✅ Use subjectName if available, else fallback to className
+        const subject =
+          session.subject?.subjectName || session.className || "Unknown";
 
         if (!subjectStats[subject]) {
           subjectStats[subject] = {
@@ -81,14 +202,12 @@ router.get(
 
         subjectStats[subject].totalClasses += 1;
 
-        // check if this student has a "present" attendance for this session
         const present = attendances.find(
           (a) => a.sessionId === session.sessionId && a.status === "present"
         );
         if (present) subjectStats[subject].totalPresents += 1;
       }
 
-      // 4. Convert to array and add percentage
       const summary = Object.values(subjectStats).map((s) => ({
         ...s,
         percentage:
@@ -104,7 +223,6 @@ router.get(
     }
   }
 );
-
 
 
 // GET /student/:id/attendance/:subjectName
