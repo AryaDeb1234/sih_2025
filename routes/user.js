@@ -179,6 +179,8 @@ router.get(
       // ✅ Fetch all sessions with subject populated
       const sessions = await Session.find().populate("subject");
 
+      console.log(sessions);
+
       if (!sessions.length) {
         return res.json({ summary: [] });
       }

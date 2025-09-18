@@ -29,5 +29,31 @@ const userSchema = new mongoose.Schema({
 
 });
 
+userSchema.post("save", async function (doc, next) {
+  try {
+    if (doc.role === "teacher" && doc.subjects && doc.subjects.length > 0) {
+      for (const sub of doc.subjects) {
+        // ✅ Upsert subject into global Subject collection
+        await Subject.updateOne(
+          { subjectCode: sub.subjectCode, department: sub.department }, // unique criteria
+          {
+            $setOnInsert: {
+              subjectName: sub.subjectName,
+              subjectCode: sub.subjectCode,
+              semester: sub.semester,
+              department: sub.department
+            }
+          },
+          { upsert: true }
+        );
+      }
+    }
+    next();
+  } catch (err) {
+    console.error("Error syncing subjects:", err);
+    next(err);
+  }
+});
+
 
 module.exports = mongoose.model("User", userSchema);
