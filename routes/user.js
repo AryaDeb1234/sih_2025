@@ -350,7 +350,7 @@ router.get("/teacher/:id/attendance-stats",
 
       // 2. Find all sessions created by this teacher
       const sessions = await Session.find({ teacher: teacherId });
-      if (!sessions.length) return res.status(404).json({ error: "No sessions found for teacher" });
+      if (!sessions.length) return /*res.status(404).json({ error: "No sessions found for teacher" });*/ res.status(204).end();
 
       // 3. Compute attendance stats for each session
       const stats = [];
