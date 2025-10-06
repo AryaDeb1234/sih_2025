@@ -14,6 +14,7 @@ console.log("Loaded public key:");
 console.log(pub_key.slice(0, 50) + "...");
 console.log("Public key ends with:");
 console.log(pub_key.slice(-50));
+console.log("PUBLIC KEY used for verification:\n", pub_key);
 
 // Options for JWT strategy
 const options = {

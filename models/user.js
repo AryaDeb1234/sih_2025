@@ -11,23 +11,25 @@ const subjectSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   name: String,
+  avatar: String,
   email: { type: String, unique: true },
   role: { type: String, enum: ["admin", "teacher", "student"], required: true },
   password: String,      // hash
   salt: String,          // salt
   isPasswordChanged: { type: Boolean, default: false },
 
-    // Common fields
+  // Common fields
   department: { type: String },
 
   // For students
   semester: String,   // e.g., 1, 2, 3...
   year: String,       // e.g., 2025
+  faceEncoding: { type: [Number], default: [] }, // <-- store face encoding array
 
   // For teachers
   subjects: [subjectSchema]
-
 });
+
 
 userSchema.post("save", async function (doc, next) {
   try {
