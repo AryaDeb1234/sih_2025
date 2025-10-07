@@ -248,6 +248,73 @@ router.post(
 );
 
 
+// 📍 Teacher route: mark attendance manually for any student (by email + sessionId)
+router.post('/teacher/mark', async (req, res) => {
+  try {
+    const { teacherId, studentEmail, sessionId } = req.body;
+
+    // 1️⃣ Validate required fields
+    if (!teacherId || !studentEmail || !sessionId) {
+      return res.status(400).json({ error: 'teacherId, studentEmail, and sessionId are required' });
+    }
+
+    // 2️⃣ Fetch teacher and student
+    const teacher = await User.findById(teacherId);
+    if (!teacher || teacher.role !== 'teacher') {
+      return res.status(403).json({ error: 'Invalid teacher' });
+    }
+
+    const student = await User.findOne({ email: studentEmail });
+    if (!student || student.role !== 'student') {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // 3️⃣ Fetch session (⚠️ No active status check)
+    const session = await Session.findOne({ sessionId });
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // 4️⃣ Check if attendance already marked
+    const alreadyMarked = await Attendance.findOne({ studentId: student._id, sessionId });
+    if (alreadyMarked) {
+      return res.status(400).json({ error: 'Attendance already marked for this student' });
+    }
+
+    // 5️⃣ Mark attendance directly
+    const newAttendance = new Attendance({
+      studentId: student._id,
+      sessionId,
+      ip: req.ipInfo ? req.ipInfo.ip.split(",")[0].trim() : "manual-teacher-entry",
+      gpsValid: true, // teacher override
+      faceVerified: true, // bypass since teacher is marking
+      faceConfidence: 1.0,
+      status: 'present',
+    });
+
+    await newAttendance.save();
+
+    // 6️⃣ Update Session.students[] (avoid duplicates)
+    await Session.updateOne(
+      { sessionId },
+      { $addToSet: { students: { id: student._id, name: student.name, email: student.email } } }
+    );
+
+    res.json({
+      message: `Attendance marked for ${student.name} (${student.email}) by ${teacher.name}`,
+      sessionId,
+      teacher: teacher.name,
+      student: student.name,
+      time: new Date(),
+    });
+
+  } catch (err) {
+    console.error("Teacher mark error:", err);
+    res.status(500).json({ error: 'Failed to mark attendance' });
+  }
+});
+
+
 ///////////////////////////////////////////////////////////// working postion 
 
 // router.post(
