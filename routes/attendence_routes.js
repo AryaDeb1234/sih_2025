@@ -171,7 +171,7 @@ router.post(
       let gpsValid = false;
       if (lat && lng) {
         const distance = calculateDistance(lat, lng, session.lat, session.lng);
-        gpsValid = distance <= 200;
+        gpsValid = distance <= 500;
       }
       if (!gpsValid) return res.status(403).json({ error: 'You are not within the allowed class area' });
 
